@@ -1,0 +1,29 @@
+version: '3'
+services:
+  hockeypuck:
+    #image: ghcr.io/typeling1578/hockeypuck-docker:${RELEASE}
+    build:
+      context: .
+    ports:
+      - "11371:11371"
+      - "11370:11370"
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./hockeypuck.conf:/hockeypuck/etc/hockeypuck.conf
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_USER=hockeypuck
+      - POSTGRES_PASSWORD=hockeypuck
+      - POSTGRES_DB=hkp
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      interval: 5s
+      retries: 20
